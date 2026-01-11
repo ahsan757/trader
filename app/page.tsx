@@ -68,11 +68,11 @@ export default function Home() {
             <div className="grid grid-cols-2 gap-4 mt-auto">
               <div className="space-y-1">
                 <p className="text-[10px] uppercase tracking-widest text-white/30">Buy Section</p>
-                <p className="text-lg font-semibold">${project.buyItems.reduce((s, i) => s + i.totalAmount, 0).toLocaleString()}</p>
+                <p className="text-lg font-semibold">PKR {project.buyItems.reduce((s, i) => s + i.totalAmount, 0).toLocaleString()}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-[10px] uppercase tracking-widest text-white/30">Give Section</p>
-                <p className="text-lg font-semibold">${project.giveItems.reduce((s, i) => s + i.totalAmount, 0).toLocaleString()}</p>
+                <p className="text-lg font-semibold">PKR {project.giveItems.reduce((s, i) => s + i.totalAmount, 0).toLocaleString()}</p>
               </div>
             </div>
           </div>

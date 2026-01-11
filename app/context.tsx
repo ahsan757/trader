@@ -9,6 +9,8 @@ interface ProjectContextType {
     setActiveProject: (project: Project | null) => void;
     addProject: (name: string) => Promise<void>;
     addItem: (projectId: string, section: 'buy' | 'give', item: Omit<Item, 'id' | 'totalAmount'>) => Promise<void>;
+    updateItem: (projectId: string, section: 'buy' | 'give', index: number, item: Omit<Item, 'id' | 'totalAmount'>) => Promise<void>;
+    deleteItem: (projectId: string, section: 'buy' | 'give', index: number) => Promise<void>;
     addPayment: (projectId: string, section: 'buy' | 'give', payment: Omit<Payment, 'id'>) => Promise<void>;
     deleteProject: (id: string) => Promise<void>;
     loading: boolean;
@@ -91,6 +93,51 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const updateItem = async (projectId: string, section: 'buy' | 'give', index: number, itemData: Omit<Item, 'id' | 'totalAmount'>) => {
+        try {
+            const key = section === 'buy' ? 'buyItems' : 'giveItems';
+            const totalAmount = itemData.quantity * itemData.quantityPerPcs;
+            const res = await fetch(`/api/projects/${projectId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'updateItem',
+                    section: key,
+                    index,
+                    ...itemData,
+                    totalAmount
+                }),
+            });
+            const updated = await res.json();
+            const sanitized = sanitize(updated);
+            if (sanitized) {
+                setProjects((prev) => prev.map((p) => (p.id === projectId ? sanitized : p)));
+                if (activeProject?.id === projectId) setActiveProject(sanitized);
+            }
+        } catch (e) {
+            console.error('Failed to update item', e);
+        }
+    };
+
+    const deleteItem = async (projectId: string, section: 'buy' | 'give', index: number) => {
+        try {
+            const key = section === 'buy' ? 'buyItems' : 'giveItems';
+            const res = await fetch(`/api/projects/${projectId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'deleteItem', section: key, index }),
+            });
+            const updated = await res.json();
+            const sanitized = sanitize(updated);
+            if (sanitized) {
+                setProjects((prev) => prev.map((p) => (p.id === projectId ? sanitized : p)));
+                if (activeProject?.id === projectId) setActiveProject(sanitized);
+            }
+        } catch (e) {
+            console.error('Failed to delete item', e);
+        }
+    };
+
     const addPayment = async (projectId: string, section: 'buy' | 'give', paymentData: Omit<Payment, 'id'>) => {
         try {
             const key = section === 'buy' ? 'buyPayments' : 'givePayments';
@@ -128,6 +175,8 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
                 setActiveProject,
                 addProject,
                 addItem,
+                updateItem,
+                deleteItem,
                 addPayment,
                 deleteProject,
                 loading
